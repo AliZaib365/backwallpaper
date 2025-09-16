@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wallpaper Uploader</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; background: #f2f3fa; margin: 0; }
+    .container { max-width: 800px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px #4361ee22; padding: 32px;}
+    h1 { color: #4361ee; }
+    label { display: block; margin-top: 14px; font-weight: bold; }
+    select, input[type="text"], input[type="file"] { margin-top: 6px; width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c3cfe2; }
+    button { margin-top: 18px; background: #4361ee; color: #fff; border: none; border-radius: 7px; padding: 10px 24px; font-size: 16px; cursor: pointer; }
+    .preview { margin-top: 18px; }
+    .gallery { margin-top: 36px; }
+    .gallery-item { display: inline-block; margin: 10px; vertical-align: top; background: #f8f9fa; border-radius: 7px; padding: 12px; }
+    .gallery-item img, .gallery-item video { max-width: 140px; max-height: 140px; display: block; margin-bottom: 6px; border-radius: 7px; }
+    .gallery-title { font-weight: bold; color: #4361ee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Wallpaper Uploader</h1>
+    <form id="uploadForm">
+      <label>Main Category</label>
+      <select id="mainCategory" required></select>
+      <label>Subcategory</label>
+      <select id="subCategory" required></select>
+      <label>Wallpaper Type</label>
+      <select id="wallpaperType" required>
+        <option value="static">Static</option>
+        <option value="live">Live</option>
+      </select>
+      <label>Wallpapers (multiple allowed)</label>
+      <input type="file" id="wallpaperFiles" name="files" multiple required>
+      <div id="titlesPreview"></div>
+      <button type="submit">Upload Wallpapers</button>
+    </form>
+
+    <div class="gallery">
+      <h2>Gallery</h2>
+      <div id="galleryItems"></div>
+    </div>
+  </div>
+  <script>
+    // Fetch categories
+    fetch('/api/main-categories').then(r=>r.json()).then(data=>{
+      const sel = document.getElementById('mainCategory');
+      sel.innerHTML = '<option value="">Select Main Category</option>' + data.map(c=>`<option value="${c._id}">${c.name}</option>`).join('');
+    });
+
+    document.getElementById('mainCategory').addEventListener('change', function() {
+      fetch(`/api/sub-categories?mainCategory=${this.value}`)
+        .then(r=>r.json())
+        .then(data => {
+          const sel = document.getElementById('subCategory');
+          sel.innerHTML = '<option value="">Select Subcategory</option>' + data.map(s=>`<option value="${s._id}">${s.name}</option>`).join('');
+        });
+    });
+
+    // File type enforcement and preview
+    const wallpaperType = document.getElementById('wallpaperType');
+    const wallpaperFiles = document.getElementById('wallpaperFiles');
+    const titlesPreview = document.getElementById('titlesPreview');
+    wallpaperType.addEventListener('change', function() {
+      wallpaperFiles.value = "";
+      titlesPreview.innerHTML = "";
+      if (this.value === "static") wallpaperFiles.accept = "image/*";
+      else wallpaperFiles.accept = "video/*";
+    });
+    wallpaperFiles.addEventListener('change', function() {
+      titlesPreview.innerHTML = "";
+      let files = Array.from(wallpaperFiles.files);
+      const type = wallpaperType.value;
+      if (type === "static" && files.some(f => !f.type.startsWith("image/"))) {
+        alert("Static wallpaper must be images only.");
+        wallpaperFiles.value = "";
+        return;
+      }
+      if (type === "live" && files.some(f => !f.type.startsWith("video/"))) {
+        alert("Live wallpaper must be videos only.");
+        wallpaperFiles.value = "";
+        return;
+      }
+      files.forEach((file, idx) => {
+        const div = document.createElement("div");
+        div.className = "preview";
+        div.innerHTML = `<label>Title for ${file.name}:</label>
+          <input type="text" name="title_${idx}" value="${file.name.replace(/\.[^/.]+$/, '')}" required>`;
+        if (file.type.startsWith("image/")) {
+          const img = document.createElement("img");
+          img.src = URL.createObjectURL(file);
+          img.style.maxWidth = "100px";
+          img.style.marginTop = "8px";
+          img.onload = () => URL.revokeObjectURL(img.src);
+          div.appendChild(img);
+        } else if (file.type.startsWith("video/")) {
+          const video = document.createElement("video");
+          video.src = URL.createObjectURL(file);
+          video.controls = true;
+          video.muted = true;
+          video.style.maxWidth = "100px";
+          video.style.marginTop = "8px";
+          video.onloadeddata = () => URL.revokeObjectURL(video.src);
+          div.appendChild(video);
+        }
+        titlesPreview.appendChild(div);
+      });
+    });
+
+    // Upload handler
+    document.getElementById('uploadForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('mainCategory', document.getElementById('mainCategory').value);
+      formData.append('subCategory', document.getElementById('subCategory').value);
+      formData.append('type', document.getElementById('wallpaperType').value);
+
+      // Get titles
+      const files = Array.from(wallpaperFiles.files);
+      let titles = [];
+      for (let i = 0; i < files.length; i++) {
+        const titleInput = document.querySelector(`input[name="title_${i}"]`);
+        titles.push(titleInput.value);
+        formData.append('files', files[i]);
+      }
+      formData.append('titles', titles);
+
+      fetch('/api/wallpapers', { method: 'POST', body: formData })
+        .then(r=>r.json())
+        .then(data=>{
+          alert('Uploaded!');
+          wallpaperFiles.value = "";
+          titlesPreview.innerHTML = "";
+          loadGallery();
+        });
+    });
+
+    // Gallery loader
+    function loadGallery() {
+      fetch('/api/wallpapers').then(r=>r.json()).then(data=>{
+        const container = document.getElementById('galleryItems');
+        container.innerHTML = "";
+        data.forEach(item=>{
+          const div = document.createElement('div');
+          div.className = 'gallery-item';
+          div.innerHTML = `<div class="gallery-title">${item.title}</div>`;
+          if (item.type === 'static') {
+            div.innerHTML += `<img src="${item.fileUrl}">`;
+          } else {
+            div.innerHTML += `<video src="${item.fileUrl}" controls muted></video>`;
+            if (item.snapshotUrl) div.innerHTML += `<div>Snapshot: <img src="${item.snapshotUrl}" style="max-width:80px"></div>`;
+          }
+          div.innerHTML += `<div>${item.mainCategory.name} / ${item.subCategory.name}</div>`;
+          container.appendChild(div);
+        });
+      });
+    }
+    loadGallery();
+  </script>
+</body>
+</html>
