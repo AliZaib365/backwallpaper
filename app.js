@@ -119,7 +119,6 @@ app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
           const snapshotFilename = 'snapshot_' + file.filename + '.jpg';
           const snapshotPath = path.join(__dirname, 'uploads', snapshotFilename);
 
-          // ✅ Use .save() instead of .output() + .run()
           await runFfmpegPromise(
             ffmpeg(originalFilePath)
               .setStartTime(0)
