@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
-const WallpaperSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  type: { type: String, enum: ['static', 'live'], required: true },
-  fileUrl: { type: String, required: true },
-  snapshotUrl: { type: String }, // For live wallpapers
-  mainCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'MainCategory', required: true },
-  subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory', required: true },
+
+const wallpaperItemSchema = new mongoose.Schema({
+  title: String,
+  fileUrl: String,
+  snapshotUrl: String,
   createdAt: { type: Date, default: Date.now }
 });
-module.exports = mongoose.model('Wallpaper', WallpaperSchema);
+
+const wallpaperSchema = new mongoose.Schema({
+  type: { type: String, default: 'static' },
+  mainCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'MainCategory' },
+  subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory' },
+  wallpapers: [wallpaperItemSchema] // Array of wallpaper items
+}, { timestamps: true });
+
+module.exports = mongoose.model('Wallpaper', wallpaperSchema);
