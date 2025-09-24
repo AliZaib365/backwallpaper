@@ -11,7 +11,7 @@ const wallpaperSchema = new mongoose.Schema({
   type: { type: String, default: 'static' },
   mainCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'MainCategory' },
   subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory' },
-  wallpapers: [wallpaperItemSchema] // Array of wallpaper items
+  wallpapers: [wallpaperItemSchema]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Wallpaper', wallpaperSchema);

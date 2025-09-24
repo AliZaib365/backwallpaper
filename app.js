@@ -18,14 +18,12 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 if (!fs.existsSync(path.join(__dirname, 'uploads'))) fs.mkdirSync(path.join(__dirname, 'uploads'));
 
-// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
   filename: (req, file, cb) => cb(null, Date.now() + '_' + file.originalname)
 });
 const upload = multer({ storage });
 
-// Get main categories
 app.get('/api/main-categories', async (req, res) => {
   try {
     const cats = await MainCategory.find();
@@ -36,7 +34,6 @@ app.get('/api/main-categories', async (req, res) => {
   }
 });
 
-// Get subcategories for a main category
 app.get('/api/sub-categories', async (req, res) => {
   const { mainCategory } = req.query;
   try {
@@ -48,7 +45,6 @@ app.get('/api/sub-categories', async (req, res) => {
   }
 });
 
-// Get all grouped wallpapers
 app.get('/api/wallpapers', async (req, res) => {
   try {
     const wallpapers = await Wallpaper.find()
@@ -62,29 +58,17 @@ app.get('/api/wallpapers', async (req, res) => {
   }
 });
 
-// ffmpeg helper (if needed for live wallpapers)
-function runFfmpegPromise(cmd) {
-  return new Promise((resolve, reject) => {
-    cmd.on('end', resolve).on('error', reject);
-  });
-}
-
-// Upload wallpapers sequentially and group by main/sub/type
 app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
   try {
     const { titles, type = 'static', mainCategory, subCategory } = req.body;
     if (!mainCategory || !subCategory) return res.status(400).json({ error: 'Main/subcategory required.' });
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded.' });
 
-    // Parse titles — frontend sends JSON string of titles
     let titleArr = [];
     if (titles) {
       if (typeof titles === 'string') {
-        try {
-          titleArr = JSON.parse(titles);
-        } catch (e) {
-          titleArr = [titles]; // fallback single title
-        }
+        try { titleArr = JSON.parse(titles); }
+        catch (e) { titleArr = [titles]; }
       } else if (Array.isArray(titles)) {
         titleArr = titles;
       } else {
@@ -92,7 +76,6 @@ app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
       }
     }
 
-    // Find or create the grouped wallpaper document
     let wallpaperDoc = await Wallpaper.findOne({ mainCategory, subCategory, type });
     if (!wallpaperDoc) {
       wallpaperDoc = new Wallpaper({
@@ -103,21 +86,35 @@ app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
       });
     }
 
-    // Sequentially process each file
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
       const title = titleArr[i] || file.originalname.replace(/\.[^/.]+$/, '');
       let fileUrl = `/uploads/${file.filename}`;
       let snapshotUrl = null;
 
-      // If live wallpaper (video), process with ffmpeg here (optional)
+      if (type === 'live') {
+        const snapshotFilename = `snapshot_${Date.now()}_${file.filename}.jpg`;
+        const snapshotPath = path.join(__dirname, 'uploads', snapshotFilename);
+        await new Promise((resolve, reject) => {
+          ffmpeg(file.path)
+            .screenshots({
+              timestamps: [2],
+              filename: snapshotFilename,
+              folder: path.join(__dirname, 'uploads'),
+              size: '640x?'
+            })
+            .on('end', resolve)
+            .on('error', reject);
+        });
+        snapshotUrl = `/uploads/${snapshotFilename}`;
+      }
 
       wallpaperDoc.wallpapers.push({
         title,
         fileUrl,
         snapshotUrl
       });
-      await wallpaperDoc.save(); // Save after each addition (sequential)
+      await wallpaperDoc.save();
     }
 
     res.json(wallpaperDoc);
@@ -127,12 +124,10 @@ app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
   }
 });
 
-// Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// Connect DB and start server
 const PORT = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)))

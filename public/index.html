@@ -468,7 +468,7 @@
       });
   }
 
-  function renderGallery() {
+ function renderGallery() {
     galleryItemsDiv.innerHTML = '';
     const filteredWallpapers = currentFilter === 'all'
       ? flatWallpapers
@@ -491,7 +491,9 @@
         <div class="gallery-type">${wallpaper.type}</div>
         ${wallpaper.type === 'static'
           ? `<img src="${wallpaper.fileUrl}" class="gallery-media" alt="${wallpaper.title}">`
-          : `<video src="${wallpaper.fileUrl}" class="gallery-media" muted loop></video>`
+          : wallpaper.snapshotUrl
+            ? `<img src="${wallpaper.snapshotUrl}" class="gallery-media" alt="${wallpaper.title}">`
+            : `<video src="${wallpaper.fileUrl}" class="gallery-media" muted loop></video>`
         }
         <div class="gallery-info">
           <h3 class="gallery-title">${wallpaper.title}</h3>
@@ -502,20 +504,16 @@
         </div>
       `;
       galleryItemsDiv.appendChild(galleryItem);
-      if (wallpaper.type === 'live') {
+      if (wallpaper.type === 'live' && !wallpaper.snapshotUrl) {
         const video = galleryItem.querySelector('video');
         if (video) {
-          galleryItem.addEventListener('mouseenter', () => {
-            video.play().catch(e => {});
-          });
-          galleryItem.addEventListener('mouseleave', () => {
-            video.pause();
-            video.currentTime = 0;
-          });
+          galleryItem.addEventListener('mouseenter', () => { video.play().catch(e => {}); });
+          galleryItem.addEventListener('mouseleave', () => { video.pause(); video.currentTime = 0; });
         }
       }
     });
   }
+
 
   loadGallery();
 </script>
