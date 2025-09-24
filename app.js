@@ -6,6 +6,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
+const session = require('express-session');
 const MainCategory = require('./models/MainCategory');
 const SubCategory = require('./models/SubCategory');
 const Wallpaper = require('./models/Wallpaper');
@@ -18,12 +19,58 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 if (!fs.existsSync(path.join(__dirname, 'uploads'))) fs.mkdirSync(path.join(__dirname, 'uploads'));
 
+// Session setup - uses a securely generated secret
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+// Auth middleware
+function requireLogin(req, res, next) {
+  if (req.session && req.session.loggedIn) return next();
+  if (req.path.startsWith('/api')) return res.status(401).json({ error: 'Unauthorized' });
+  return res.redirect('/login');
+}
+
+// Login page (GET)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/login.html'));
+});
+
+// Login logic (POST)
+app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
+  const { username, password } = req.body;
+  if (
+    username === process.env.DASHBOARD_USER &&
+    password === process.env.DASHBOARD_PASS
+  ) {
+    req.session.loggedIn = true;
+    return res.redirect('/');
+  }
+  // Simple error: reload login page (could show message in production)
+  return res.sendFile(path.join(__dirname, 'public/login.html'));
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+// Protect dashboard and all API routes
+app.use(requireLogin);
+
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
   filename: (req, file, cb) => cb(null, Date.now() + '_' + file.originalname)
 });
 const upload = multer({ storage });
 
+// Main Category API
 app.get('/api/main-categories', async (req, res) => {
   try {
     const cats = await MainCategory.find();
@@ -34,6 +81,7 @@ app.get('/api/main-categories', async (req, res) => {
   }
 });
 
+// Sub Category API
 app.get('/api/sub-categories', async (req, res) => {
   const { mainCategory } = req.query;
   try {
@@ -45,6 +93,7 @@ app.get('/api/sub-categories', async (req, res) => {
   }
 });
 
+// Wallpapers API (grouped)
 app.get('/api/wallpapers', async (req, res) => {
   try {
     const wallpapers = await Wallpaper.find()
@@ -58,6 +107,7 @@ app.get('/api/wallpapers', async (req, res) => {
   }
 });
 
+// Upload wallpapers with snapshot for live video
 app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
   try {
     const { titles, type = 'static', mainCategory, subCategory } = req.body;
@@ -124,6 +174,7 @@ app.post('/api/wallpapers', upload.array('files'), async (req, res) => {
   }
 });
 
+// Main dashboard (index)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });

@@ -7,23 +7,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #4361ee;
-      --primary-light: #4895ef;
-      --secondary: #3a0ca3;
-      --accent: #f72585;
-      --light: #f8f9fa;
+      --primary: #1e3c72;
+      --primary-light: #2a5298;
+      --secondary: #ee9ca7;
+      --accent: #ea5455;
+      --light: #f9fafb;
       --dark: #212529;
-      --gray: #6c757d;
-      --success: #4cc9f0;
-      --border-radius: 16px;
-      --card-shadow: 0 10px 30px rgba(67, 97, 238, 0.12);
-      --transition: all 0.3s ease;
-      --gradient-bg: linear-gradient(135deg, #f0f4ff 0%, #e6e9ff 100%);
+      --gray: #768390;
+      --success: #58b368;
+      --border-radius: 20px;
+      --card-shadow: 0 8px 30px rgba(30,60,114,0.12);
+      --transition: all 0.3s cubic-bezier(.77,0,.18,1);
+      --gradient-bg: linear-gradient(135deg, #232526 0%, #414345 100%);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--gradient-bg);
+      background: white;
       color: var(--dark);
       line-height: 1.6;
       padding: 20px;
@@ -48,21 +48,21 @@
     .main-content { display: grid; grid-template-columns: 1fr 2.2fr; gap: 35px; }
     @media (max-width: 950px) { .main-content { grid-template-columns: 1fr; } }
     .upload-section, .gallery-section {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
       border-radius: var(--border-radius);
       box-shadow: var(--card-shadow);
-      padding: 30px;
+      padding: 32px;
       transition: var(--transition);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      border: 1px solid #e6e8f0;
     }
     .upload-section:hover, .gallery-section:hover {
-      box-shadow: 0 20px 40px rgba(67, 97, 238, 0.15);
+      box-shadow: 0 20px 40px rgba(30,60,114,0.15);
       transform: translateY(-5px);
     }
     .section-title {
       color: var(--primary); font-size: 1.6rem; margin-bottom: 25px; padding-bottom: 15px;
-      border-bottom: 2px solid rgba(67, 97, 238, 0.1); display: flex; align-items: center; gap: 12px; font-weight: 700;
+      border-bottom: 2px solid rgba(30,60,114,0.09); display: flex; align-items: center; gap: 12px; font-weight: 700;
     }
     .section-title i {
       font-size: 1.4rem;
@@ -70,19 +70,19 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .form-group { margin-bottom: 25px; position: relative; }
-    label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--secondary); font-size: 1.05rem; }
+    label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--primary); font-size: 1.05rem; }
     select, input[type="text"], input[type="file"] {
-      width: 100%; padding: 15px 18px; border-radius: 12px; border: 1px solid #e1e6f9;
-      background: #fafbff; font-size: 1rem; transition: var(--transition);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+      width: 100%; padding: 15px 18px; border-radius: 12px; border: 1.5px solid #e0e8ff;
+      background: #f7fafd; font-size: 1rem; transition: var(--transition);
+      box-shadow: inset 0 2px 4px rgba(30,60,114,0.03);
     }
     select:focus, input[type="text"]:focus {
       outline: none; border-color: var(--primary-light);
-      box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15); transform: translateY(-2px);
+      box-shadow: 0 0 0 4px #e0e8ff; transform: translateY(-2px);
     }
     .file-input-container {
-      position: relative; overflow: hidden; border-radius: 12px; background: #fafbff;
-      border: 2px dashed #dce1e8; padding: 30px 20px; text-align: center; cursor: pointer; transition: var(--transition);
+      position: relative; overflow: hidden; border-radius: 12px; background: #f7fafd;
+      border: 2px dashed #d7e3fc; padding: 30px 20px; text-align: center; cursor: pointer; transition: var(--transition);
     }
     .file-input-container:hover { border-color: var(--primary); background: #f0f4ff; transform: translateY(-3px); }
     .file-input-container.dragover { background: var(--primary-light); border-color: var(--primary); }
@@ -96,58 +96,58 @@
     .preview-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
     .preview-container::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 10px; }
     .preview-item {
-      background: #f8f9ff; border-radius: 12px; padding: 18px; margin-bottom: 18px;
-      border: 1px solid #e6e9ff; transition: var(--transition);
+      background: #f3f6fb; border-radius: 12px; padding: 18px; margin-bottom: 18px;
+      border: 1px solid #e9eef7; transition: var(--transition);
     }
-    .preview-item:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .preview-item:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(30,60,114,0.05); }
     .preview-header { display: flex; align-items: center; margin-bottom: 12px; }
     .preview-thumb {
       width: 70px; height: 70px; object-fit: cover; border-radius: 10px; margin-right: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: var(--transition);
+      box-shadow: 0 4px 8px rgba(30,60,114,0.10); transition: var(--transition);
     }
     .preview-thumb:hover { transform: scale(1.05); }
     .preview-title-input {
-      flex: 1; padding: 12px 15px; border-radius: 8px; border: 1px solid #e1e6f9;
+      flex: 1; padding: 12px 15px; border-radius: 8px; border: 1.5px solid #e0e8ff;
       font-size: 1rem; transition: var(--transition);
     }
-    .preview-title-input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
+    .preview-title-input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px #e0e8ff77; }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 10px;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: white; border: none; border-radius: 12px; padding: 16px 28px; font-size: 1.1rem;
       font-weight: 700; cursor: pointer; transition: var(--transition); width: 100%;
-      box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+      box-shadow: 0 10px 20px rgba(30,60,114,0.18);
     }
     .btn:hover { background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
-      transform: translateY(-3px); box-shadow: 0 15px 30px rgba(67, 97, 238, 0.3); }
+      transform: translateY(-3px); box-shadow: 0 15px 30px rgba(30,60,114,0.23); }
     .btn:active { transform: translateY(0); }
     .btn i { font-size: 1.2rem; }
     .gallery-controls { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; }
     .filter-btn {
-      padding: 10px 20px; background: white; border: 1px solid #e1e6f9; border-radius: 10px;
+      padding: 10px 20px; background: white; border: 1.5px solid #e0e8ff; border-radius: 10px;
       cursor: pointer; transition: var(--transition); font-weight: 600;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+      box-shadow: 0 4px 6px rgba(30,60,114,0.04);
     }
     .filter-btn.active, .filter-btn:hover {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: white; border-color: var(--primary); transform: translateY(-2px);
-      box-shadow: 0 7px 14px rgba(67, 97, 238, 0.2);
+      box-shadow: 0 7px 14px rgba(30,60,114,0.14);
     }
     .gallery-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
     }
     .gallery-item {
       background: white; border-radius: var(--border-radius); overflow: hidden;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); transition: var(--transition); position: relative;
+      box-shadow: 0 8px 20px rgba(30,60,114,0.09); transition: var(--transition); position: relative;
     }
-    .gallery-item:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); z-index: 2; }
-    .gallery-media { width: 100%; height: 200px; object-fit: cover; display: block; transition: var(--transition); }
+    .gallery-item:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(30,60,114,0.15); z-index: 2; }
+    .gallery-media { width: 100%; height: 200px; object-fit: cover; display: block; transition: var(--transition); background: #f7fafd;}
     .gallery-item:hover .gallery-media { transform: scale(1.05); }
     .gallery-info { padding: 20px; }
-    .gallery-title { font-weight: 800; color: var(--secondary); margin-bottom: 10px; font-size: 1.15rem; line-height: 1.3; }
+    .gallery-title { font-weight: 800; color: var(--primary); margin-bottom: 10px; font-size: 1.15rem; line-height: 1.3; }
     .gallery-category { display: flex; justify-content: space-between; align-items: center; color: var(--gray); font-size: 0.95rem; }
     .gallery-type {
-      position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.7); color: white;
+      position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.72); color: white;
       padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(4px);
     }
     .empty-state {
@@ -160,15 +160,15 @@
       color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
     }
     .tabs {
-      display: flex; margin-bottom: 25px; background: #f8f9ff; border-radius: 12px; padding: 6px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+      display: flex; margin-bottom: 25px; background: #f1f2f6; border-radius: 12px; padding: 6px;
+      box-shadow: 0 4px 6px rgba(30,60,114,0.03);
     }
     .tab {
       flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 10px; transition: var(--transition); font-weight: 600;
     }
     .tab.active {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+      color: white; box-shadow: 0 4px 10px rgba(30,60,114,0.14);
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -177,7 +177,7 @@
     .gallery-item { animation: fadeIn 0.5s ease forwards; }
     .toast {
       position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; background: var(--success);
-      color: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      color: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(30,60,114,0.12);
       display: flex; align-items: center; gap: 10px; z-index: 1000; animation: slideIn 0.3s ease forwards;
     }
     @keyframes slideIn {
@@ -196,6 +196,15 @@
       .gallery-grid { grid-template-columns: 1fr; }
       .gallery-controls { justify-content: center; }
     }
+    /* Logout link styling */
+    .logout-link {
+      position: absolute; top: 22px; right: 26px;
+      color: var(--primary); font-weight: 700; text-decoration: none;
+      background: rgba(255,255,255,0.80); padding: 7px 18px;
+      border-radius: 8px; box-shadow: 0 2px 8px #23252614; font-size: 1rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .logout-link:hover { background: var(--primary); color: #fff; }
   </style>
 </head>
 <body>
@@ -205,6 +214,7 @@
         <i class="fas fa-image"></i>
         <h1>Wallpaper Hub</h1>
       </div>
+      <a href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
       <p class="subtitle">Upload and organize your favorite wallpapers</p>
     </header>
 
@@ -468,7 +478,7 @@
       });
   }
 
- function renderGallery() {
+  function renderGallery() {
     galleryItemsDiv.innerHTML = '';
     const filteredWallpapers = currentFilter === 'all'
       ? flatWallpapers
@@ -487,33 +497,50 @@
       const galleryItem = document.createElement('div');
       galleryItem.className = 'gallery-item';
       galleryItem.style.animationDelay = `${index * 0.1}s`;
-      galleryItem.innerHTML = `
-        <div class="gallery-type">${wallpaper.type}</div>
-        ${wallpaper.type === 'static'
-          ? `<img src="${wallpaper.fileUrl}" class="gallery-media" alt="${wallpaper.title}">`
-          : wallpaper.snapshotUrl
-            ? `<img src="${wallpaper.snapshotUrl}" class="gallery-media" alt="${wallpaper.title}">`
-            : `<video src="${wallpaper.fileUrl}" class="gallery-media" muted loop></video>`
-        }
-        <div class="gallery-info">
-          <h3 class="gallery-title">${wallpaper.title}</h3>
-          <div class="gallery-category">
-            <span>${wallpaper.mainCategory?.name || ''}</span>
-            <span class="category-badge">${wallpaper.subCategory?.name || ''}</span>
+
+      if (wallpaper.type === 'static') {
+        galleryItem.innerHTML = `
+          <div class="gallery-type">${wallpaper.type}</div>
+          <img src="${wallpaper.fileUrl}" class="gallery-media" alt="${wallpaper.title}">
+          <div class="gallery-info">
+            <h3 class="gallery-title">${wallpaper.title}</h3>
+            <div class="gallery-category">
+              <span>${wallpaper.mainCategory?.name || ''}</span>
+              <span class="category-badge">${wallpaper.subCategory?.name || ''}</span>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      } else {
+        galleryItem.innerHTML = `
+          <div class="gallery-type">${wallpaper.type}</div>
+          <video src="${wallpaper.fileUrl}" class="gallery-media" muted preload="metadata" loop poster="${wallpaper.snapshotUrl ? wallpaper.snapshotUrl : ''}"></video>
+          <div class="gallery-info">
+            <h3 class="gallery-title">${wallpaper.title}</h3>
+            <div class="gallery-category">
+              <span>${wallpaper.mainCategory?.name || ''}</span>
+              <span class="category-badge">${wallpaper.subCategory?.name || ''}</span>
+            </div>
+          </div>
+        `;
+      }
+
       galleryItemsDiv.appendChild(galleryItem);
-      if (wallpaper.type === 'live' && !wallpaper.snapshotUrl) {
+
+      // Play/pause video on hover for live wallpapers
+      if (wallpaper.type === 'live') {
         const video = galleryItem.querySelector('video');
         if (video) {
-          galleryItem.addEventListener('mouseenter', () => { video.play().catch(e => {}); });
-          galleryItem.addEventListener('mouseleave', () => { video.pause(); video.currentTime = 0; });
+          galleryItem.addEventListener('mouseenter', () => {
+            video.play().catch(() => {});
+          });
+          galleryItem.addEventListener('mouseleave', () => {
+            video.pause();
+            video.currentTime = 0;
+          });
         }
       }
     });
   }
-
 
   loadGallery();
 </script>
