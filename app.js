@@ -38,6 +38,57 @@ function requireLogin(req, res, next) {
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/login.html'));
 });
+// Categories auto-seeding function
+async function seedCategories() {
+  try {
+    const existing = await MainCategory.countDocuments();
+    if (existing > 0) {
+      console.log("✅ Categories already seeded. Skipping...");
+      return;
+    }
+
+    const categories = [
+      { name: 'Nature', subs: ['Forest', 'Mountain', 'Ocean', 'Desert', 'Flowers'] },
+      { name: 'Abstract', subs: ['Shapes', 'Colors', 'Patterns', 'Textures'] },
+      { name: 'Animals', subs: ['Birds', 'Mammals', 'Reptiles', 'Marine Life'] },
+      { name: 'Space', subs: ['Stars', 'Planets', 'Galaxies', 'Nebulae'] }
+    ];
+
+    // Insert main categories in bulk
+    const mainCategories = await MainCategory.insertMany(
+      categories.map(c => ({ name: c.name }))
+    );
+
+    // Build subcategories array
+    let subsToInsert = [];
+    categories.forEach((cat, i) => {
+      cat.subs.forEach(sub => {
+        subsToInsert.push({
+          name: sub,
+          mainCategory: mainCategories[i]._id
+        });
+      });
+    });
+
+    await SubCategory.insertMany(subsToInsert);
+
+    console.log("✅ Categories seeded successfully!");
+  } catch (err) {
+    console.error("❌ Seeding error:", err);
+  }
+}
+
+// --- DB Connection + Seeding ---
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(async () => {
+    console.log("✅ Connected to MongoDB");
+    await seedCategories(); // <-- Run once at startup
+    app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+  })
+  .catch(err => {
+    console.error("❌ Failed to connect to MongoDB:", err);
+    process.exit(1);
+  });
 
 // Login logic (POST)
 app.post('/login', express.urlencoded({ extended: true }), (req, res) => {

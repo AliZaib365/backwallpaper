@@ -196,7 +196,6 @@
       .gallery-grid { grid-template-columns: 1fr; }
       .gallery-controls { justify-content: center; }
     }
-    /* Logout link styling */
     .logout-link {
       position: absolute; top: 22px; right: 26px;
       color: var(--primary); font-weight: 700; text-decoration: none;
@@ -205,6 +204,39 @@
       transition: background 0.15s, color 0.15s;
     }
     .logout-link:hover { background: var(--primary); color: #fff; }
+    /* Pagination styling */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 30px;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .pagination-btn {
+      background: white;
+      border: 1.5px solid #e0e8ff;
+      color: var(--primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 700;
+      min-width: 38px;
+    }
+    .pagination-btn.active, .pagination-btn:hover {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(30,60,114,0.14);
+    }
+    .pagination-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -263,6 +295,7 @@
             <p>Upload your first wallpaper to get started</p>
           </div>
         </div>
+        <div id="paginationControls" class="pagination"></div>
       </section>
     </div>
   </div>
@@ -278,9 +311,12 @@
   const tabs = document.querySelectorAll('.tab');
   const filterButtons = document.querySelectorAll('.filter-btn');
   const fileDropArea = document.getElementById('fileDropArea');
+  const paginationControls = document.getElementById('paginationControls');
   let currentFilter = 'all';
   let wallpapers = [];
   let flatWallpapers = [];
+  let currentPage = 1;
+  const itemsPerPage = 4;
 
   function showToast(message, isError = false) {
     const toast = document.createElement('div');
@@ -436,6 +472,7 @@
       filterButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
       currentFilter = filter;
+      currentPage = 1; // Reset to first page on filter change
       renderGallery();
     });
   });
@@ -464,6 +501,7 @@
             });
           }
         });
+        currentPage = 1; // Reset pagination on reload
         renderGallery();
       })
       .catch(error => {
@@ -480,10 +518,16 @@
 
   function renderGallery() {
     galleryItemsDiv.innerHTML = '';
+    paginationControls.innerHTML = '';
     const filteredWallpapers = currentFilter === 'all'
       ? flatWallpapers
       : flatWallpapers.filter(w => w.type === currentFilter);
-    if (filteredWallpapers.length === 0) {
+
+    const totalItems = filteredWallpapers.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+
+    if (totalItems === 0) {
       galleryItemsDiv.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-search"></i>
@@ -491,9 +535,16 @@
           <p>Try changing your filter or upload new wallpapers</p>
         </div>
       `;
+      paginationControls.innerHTML = '';
       return;
     }
-    filteredWallpapers.forEach((wallpaper, index) => {
+
+    // Pagination slice
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const wallpapersToShow = filteredWallpapers.slice(startIdx, endIdx);
+
+    wallpapersToShow.forEach((wallpaper, index) => {
       const galleryItem = document.createElement('div');
       galleryItem.className = 'gallery-item';
       galleryItem.style.animationDelay = `${index * 0.1}s`;
@@ -540,6 +591,55 @@
         }
       }
     });
+
+    // Pagination controls
+    if (totalPages > 1) {
+      // Previous button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'pagination-btn';
+      prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => { currentPage--; renderGallery(); };
+      paginationControls.appendChild(prevBtn);
+
+      // Page number buttons (show max 5: start, ..., current, ..., end)
+      let pageRange = [];
+      if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) pageRange.push(i);
+      } else {
+        if (currentPage <= 3) {
+          pageRange = [1, 2, 3, 4, '...', totalPages];
+        } else if (currentPage >= totalPages - 2) {
+          pageRange = [1, '...', totalPages-3, totalPages-2, totalPages-1, totalPages];
+        } else {
+          pageRange = [1, '...', currentPage-1, currentPage, currentPage+1, '...', totalPages];
+        }
+      }
+      pageRange.forEach(num => {
+        if (num === '...') {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'pagination-btn';
+          ellipsis.textContent = '...';
+          ellipsis.style.cursor = 'default';
+          paginationControls.appendChild(ellipsis);
+        } else {
+          const pageBtn = document.createElement('button');
+          pageBtn.className = 'pagination-btn' + (num === currentPage ? ' active' : '');
+          pageBtn.textContent = num;
+          pageBtn.disabled = num === currentPage;
+          pageBtn.onclick = () => { currentPage = num; renderGallery(); };
+          paginationControls.appendChild(pageBtn);
+        }
+      });
+
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'pagination-btn';
+      nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => { currentPage++; renderGallery(); };
+      paginationControls.appendChild(nextBtn);
+    }
   }
 
   loadGallery();
